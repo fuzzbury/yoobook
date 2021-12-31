@@ -1,3 +1,3 @@
 # yoobook
 
-code to extract a yoobook into a merged pdf
+python code to extract pages from a yoobook and create a pdf
