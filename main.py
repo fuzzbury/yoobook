@@ -7,6 +7,11 @@ from pyppeteer import launch
 from tqdm import tqdm
 from PyPDF2 import PdfFileMerger
 
+# note have just discovered the file contents.js
+# which has the paged in order
+# that would be the better way to find the pages
+
+
 # rundll32.exe %windir%\system32\mshtml.dll,PrintHTML "C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813321823\assets\y9bttxij4sc1615703900755\y9bttxij4sc161570390075534.html"
 
 BOOK_NAME = 'ConquerMathematics6'
