@@ -6,47 +6,44 @@ import asyncio
 from pyppeteer import launch
 from tqdm import tqdm
 from PyPDF2 import PdfFileMerger
+import json
 
-# note have just discovered the file contents.js
-# which has the paged in order
-# that would be the better way to find the pages
+BOOKS = {'ConquerMathematics6': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813288768',
+         'ConquerMathematics5': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813288904',
+         'LearningMathematics6': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813321823',
+         'ConquerExamStandardMathematicsProblemSums6': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813285187',
+         }
 
-
-# rundll32.exe %windir%\system32\mshtml.dll,PrintHTML "C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813321823\assets\y9bttxij4sc1615703900755\y9bttxij4sc161570390075534.html"
-
-BOOK_NAME = 'ConquerMathematics6'
-# BOOK_FOLDER =  r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813288904'
-# BOOK_FOLDER = r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813321823'
-# BOOK_FOLDER = r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813285187'
-BOOK_FOLDER = r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813288768'
+BOOK_NAME = 'LearningMathematics6'
 TEMP_FOLDER = r'c:\temp'
 
-
+book_folder = BOOKS[BOOK_NAME]
 async def main():
     browser = await launch()
     page = await browser.newPage()
+
+    with open(os.path.join(book_folder, 'contents.js'), 'r') as f:
+        contents = f.read()
+        contents = contents.replace('var bookData =', '')
+        contents_dicts = json.loads(contents)
 
     pattern = r'<iframe src="assets/(\w*)/(\w*).html"'
     main_page_pattern = r'<img id="img-id-\w*" class="img-responsive pull-center\s*?" style="width:100%;" src="images/\w*.jpeg" data-retina retina-support="false">'
 
     html_files = []
-    for file in os.listdir(BOOK_FOLDER):
-        if file.endswith('.html'):
-            full_path = os.path.join(BOOK_FOLDER, file)
-            html_files.append((full_path, os.path.getmtime(full_path)))
-
-    ordered_html_files = [x[0] for x in sorted(html_files, key=lambda z: z[0], reverse=False)]
+    for dico in contents_dicts:
+        html_files.append(os.path.join(book_folder, f'{dico["PID"]}.html'))
 
     temp_files = []
     i_page = 1
-    for full_path in tqdm(ordered_html_files):
+    for full_path in tqdm(html_files):
         print(f'processing {full_path}')
         with open(full_path, 'r') as f:
             text = f.read()
             matches = re.search(pattern, text)
             target = None
             if matches:
-                target = os.path.join(BOOK_FOLDER, 'assets', matches[1], f'{matches[2]}.html')
+                target = os.path.join(book_folder, 'assets', matches[1], f'{matches[2]}.html')
             else:
                 matches = re.search(main_page_pattern, text)
                 if matches:
