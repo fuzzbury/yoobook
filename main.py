@@ -8,16 +8,19 @@ from tqdm import tqdm
 from PyPDF2 import PdfFileMerger
 import json
 
-BOOKS = {'ConquerMathematics6': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813288768',
-         'ConquerMathematics5': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813288904',
-         'LearningMathematics6': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813321823',
-         'ConquerExamStandardMathematicsProblemSums6': r'C:\Users\JohnGay\AppData\Local\YooBook\YooBook\Documents\Contents\9789813285187',
-         }
+BOOKS = {
+    'ConquerMathematics6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813288768',
+    'ConquerMathematics5': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813288904',
+    'LearningMathematics6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813321823',
+    'ConquerExamStandardMathematicsProblemSums6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813285187',
+}
 
 BOOK_NAME = 'LearningMathematics6'
 TEMP_FOLDER = r'c:\temp'
 
-book_folder = BOOKS[BOOK_NAME]
+book_folder = os.path.expandvars(BOOKS[BOOK_NAME])
+
+
 async def main():
     browser = await launch()
     page = await browser.newPage()
@@ -32,11 +35,11 @@ async def main():
 
     html_files = []
     for dico in contents_dicts:
-        html_files.append(os.path.join(book_folder, f'{dico["PID"]}.html'))
+        html_files.append((os.path.join(book_folder, f'{dico["PID"]}.html'), dico["Title"]))
 
     temp_files = []
     i_page = 1
-    for full_path in tqdm(html_files):
+    for (full_path, bookmark) in tqdm(html_files):
         print(f'processing {full_path}')
         with open(full_path, 'r') as f:
             text = f.read()
@@ -53,7 +56,7 @@ async def main():
                 print(f'saving page {i_page}: {target}')
                 await page.goto(target)
                 temp_file = os.path.join(TEMP_FOLDER, fr'{BOOK_NAME}_{i_page:04}.pdf')
-                temp_files.append(temp_file)
+                temp_files.append((temp_file, bookmark))
                 await page.pdf(path=temp_file, pageRanges='1')
                 i_page += 1
 
@@ -61,9 +64,9 @@ async def main():
 
     merger = PdfFileMerger()
 
-    for pdf in temp_files:
+    for (pdf, bookmark) in temp_files:
         print(f'merging {pdf}')
-        merger.append(pdf, 'rb')
+        merger.append(pdf, bookmark=bookmark)
 
     save_file = os.path.join(TEMP_FOLDER, fr'{BOOK_NAME}.pdf')
     with open(save_file, "wb") as fout:
@@ -72,7 +75,7 @@ async def main():
     merger.close()
 
     print('deleting intermediate files..')
-    for pdf in temp_files:
+    for (pdf, bookmark) in temp_files:
         os.remove(pdf)
     print('intermediate files deleted')
     print(f'FINISHED, BOOK HERE {save_file}')
