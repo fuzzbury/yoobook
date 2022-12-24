@@ -9,6 +9,12 @@ from PyPDF2 import PdfFileMerger
 import json
 
 BOOKS = {
+    'MathOlympiadSecondary3&4': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813323896',
+    'MathOlympiadAdvanced': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813283299',
+    'MathOlympiadPrimary5&6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813323872',
+    'MathOlympiadTheNextLap': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813283305',
+    'MathOlympiadSecondary1&2': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813323889',
+
     'ConquerMathematics6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813288768',
     'ConquerMathematics5': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813288904',
     'LearningMathematics6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789813321823',
@@ -19,7 +25,7 @@ BOOKS = {
     'E-101ChallengingMathsWordProblemsBook6': r'%localappdata%\YooBook\YooBook\Documents\Contents\9789814438759',
 }
 
-BOOK_NAME = 'E-101ChallengingMathsWordProblemsBook6'
+BOOK_NAME = 'MathOlympiadAdvanced'
 TEMP_FOLDER = r'c:\temp'
 
 book_folder = os.path.expandvars(BOOKS[BOOK_NAME])
@@ -29,7 +35,7 @@ async def main():
     browser = await launch()
     page = await browser.newPage()
 
-    with open(os.path.join(book_folder, 'contents.js'), 'r') as f:
+    with open(os.path.join(book_folder, 'contents.js'), 'r', encoding="utf8") as f:
         contents = f.read()
         contents = contents.replace('var bookData =', '')
         contents_dicts = json.loads(contents)
